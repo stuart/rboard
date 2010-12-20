@@ -29,13 +29,12 @@
     - global_permissions.each_with_index do |action, count|
       %td{:width => "20px", :class => stripe }= permission.check_box action
       %td{ :class => stripe }= permission.label action, t("#{action}?")
-      = break_row(count)
   - ## Global or local permissions
   %tr
     %td{:colspan => "10", :class => "header"}
       %h3= t(:Forum_Permissions)
   %tr
-    - forum_permissions.each_with_index do |action, count|
-      %td{ :class => stripe, :width => "20px"}= permission.check_box action
-      %td{ :class => stripe }= permission.label action, t("#{action}?")
-      = break_row(count)
+    - forum_permissions.in_groups_of(5,false) do |forum_permissions|
+      - forum_permissions.each_with_index do |action, count|
+        %td{ :class => stripe, :width => "20px"}= permission.check_box action
+        %td{ :class => stripe }= permission.label action, t("#{action}?")

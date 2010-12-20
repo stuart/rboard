@@ -6,6 +6,7 @@
 %table.listing{:cellpadding => "2", :cellspacing => "0", :width => "100%"}
   %thead
     %tr
-      %td{:colspan => "10"}
+      %th{:colspan => "10"}
         %h3= t(:Global_Permissions)
-  = render :partial => "admin/permissions/form"
+  %tbody
+    = render :partial => "admin/permissions/form"
