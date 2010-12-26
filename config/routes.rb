@@ -1,98 +1,172 @@
-Rboard::Application.routes.draw do |map|
-  map.root :controller => "forums"
-  map.login 'login', :controller => 'users', :action => 'login'
-  map.logout 'logout', :controller => 'users', :action => 'logout'
-  map.signup 'signup', :controller => "users", :action => 'signup'
-
-  map.search 'search', :controller => "search", :action => "index"
-
-  map.namespace :admin do |admin|
-    admin.root :controller => "index"
-
-    admin.resources :categories, :member => { :move_up => :put, :move_down => :put, :move_to_top => :put, :move_to_bottom => :put } do |category|
-      category.resources :forums
-      category.resources :permissions
+Rboard::Application.routes.draw do
+  root :to => 'forums#index'
+  
+  match 'login', :to => 'users#login', :as => 'login'
+  match 'logout', :to => 'users#logout', :as => 'logout'
+  match 'signup', :to => 'users#signup', :as => 'signup'
+  
+  match 'search', :to => 'search#index', :as => 'search'
+  
+  namespace :admin do
+    root :to => "index#index"
+    resources :categories do
+      put :move_up, :on => :member
+      put :move_down, :on => :member
+      put :move_to_top, :on => :member
+      put :move_to_bottom, :on => :member
+      resources :forums, :permissions
     end
-
-    admin.chronic 'chronic', :controller => 'chronic'
-
-    admin.resources :configurations, :collection => { :update_all => :put }
-    admin.resources :forums, :member => { :move_up => :put, :move_down => :put, :move_to_top => :put, :move_to_bottom => :put } do |forum|
-      forum.resources :permissions
+    
+    match 'chronic', :to => "chronic#index", :as => 'chronic'
+    
+    resources :configurations do
+      put :update_all, :on => :collection
     end
-
-    admin.resources :groups do |group|
-      group.resources :members
-      group.resources :users
-      # For finding the permissions for a group in regards to a single forum.
-      group.resources :forums do |forum|
-        forum.resources :permissions
+    
+    resources :forums do
+      put :move_up, :on => :member
+      put :move_down, :on => :member
+      put :move_to_top, :on => :member
+      put :move_to_bottom, :on => :member
+      resources :permissions
+    end
+    
+    resources :groups do
+      resources :members
+      resources :users
+      resources :forums do
+        resources :permissions
       end
-
-      group.resources :permissions
     end
-
-    admin.resources :ips do |ip|
-      ip.resources :topics, :only => [:index]
-      ip.resources :posts, :only => [:index]
-      ip.resources :users, :only => [:index]
+    
+    resources :ips do
+      resources :topics, :only => [:index]
+      resources :posts, :only => [:index]
+      resources :users, :only => [:index]
     end
+    
+    resources :ranks
+    resources :themes do
+      put :make_default, :on => :member
+    end
+    
+    resources :users do
+      member do
+        post :ban       #any ?
+        post :ban_ip    #any ?
+        post :remove_banned_ip
+      end
+      collection do 
+        post :ban_ip
+        get :search
+      end
+      resources :ips
+    end
+    
+  end
+  
+  namespace :moderator do
+    root :to => "index#index"
+    resources :topics do
+      member do
+        put :lock
+        put :sticky
+      end          
+      
+      collection do
+        post :moderate
+        put :merge
+      end
+      
+      resources :moderations
+      resources :posts  do
+        member do
+         get :split
+         post :split
+        end
+      end
+      resources :reports
+    end
+    
+    resources :posts do
+      resources :moderations
+      resources :reports
+    end
+    
+    resources :moderations
+    resources :reports
+  end
+  
 
-    admin.resources :ranks
-    admin.resources :themes, :member => { :make_default => :put }
-    admin.resources :users, :collection => { :ban_ip => :any, :search => :get}, :member => { :ban => :any, :ban_ip => :any, :remove_banned_ip => :post } do |user|
-      user.resources :ips
+  resources :categories do 
+    resources :forums
+  end
+
+  resources :forums do
+    collection do 
+      get :list
+    end
+    resources :topics do
+      member do 
+        put :lock
+        put :unlock
+      end
     end
   end
 
-
-  map.namespace :moderator do |moderator|
-    moderator.root :controller => "index"
-    moderator.resources :topics, :member => { :lock => :put, :sticky => :put }, :collection => { :moderate => :post, :merge => :put } do |topic|
-      topic.resources :moderations
-      topic.resources :posts, :member => { :split => [:get, :post] }
-      topic.resources :reports
+  resources :messages do
+    member do 
+      get :reply
     end
-
-    moderator.resources :posts do |post|
-      post.resources :moderations
-      post.resources :reports
+    collection do
+      get :sent
+      put :change
     end
+  end  
 
-    moderator.resources :moderations
-
-    moderator.resources :reports
+  resources :posts do
+    member do
+      delete :destroy
+      put :destroy
+      post :destroy
+      get :destroy
+    end
+    
+    resources :edits
+    resources :reports
   end
 
-  map.resources :categories do |category|
-    category.resources :forums
+  resources :subscriptions
+
+  resources :topics do
+    member do
+     get :reply
+     put :unlock
+     put :lock
+    end
+    
+    resources :posts do
+      member do
+        get :reply
+      end
+    end
+    resources :subscriptions
+    resources :reports
   end
 
-  map.resources :forums, :collection => { :list => :get } do |forum|
-    forum.resources :topics, :member => { :lock => :put, :unlock => :put }
-  end
-
-  map.resources :messages, :member => { :reply => :get }, :collection => { :sent => :get, :change => :put }
-
-  map.resources :posts, :member => { :destroy => :any } do |post|
-    post.resources :edits
-    post.resources :reports
-  end
-
-  map.resources :subscriptions
-
-  map.resources :topics, :member => { :reply => :get, :unlock => :put, :lock => :put } do |topic|
-    topic.resources :posts, :member => { :reply => :get }
-    topic.resources :subscriptions
-    topic.resources :reports
-  end
-
-  map.resources :users, :member => { :profile => :any }, :collection => { :signup => [:get, :post], :ip_is_banned => :get } do |user|
-    user.resources :posts
+  resources :users do
+    member do 
+      get :profile 
+    end
+    collection do 
+      get :signup
+      get :ip_is_banned
+    end
+    resources :posts
   end
 
   # pretty pagination links
-  map.connect 'forums/:forum_id/topics/:id/:page', :controller => "topics", :action => "show"
-  map.connect 'forums/:id/:page', :controller => "forums", :action => "show"
-  map.connect ':controller/:action/:id'
+  match 'forums/:forum_id/topics/:id/:page', :to => "topics#show"
+  match 'forums/:id/:page', :to => "forums#show"
+  match ':controller(/:action(/:id))'
 end
