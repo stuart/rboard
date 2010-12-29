@@ -21,3 +21,4 @@ test
 tmp/**/*
 vendor/plugins/newrelic_rpm
 capybara-*.html
+.rvmrc
