@@ -1,5 +1,5 @@
 class Admin::PermissionsController < Admin::ApplicationController
-  before_filter :find_group
+  before_filter :find_object
   before_filter :store_location, :only => :index
 
   def index
@@ -55,21 +55,33 @@ class Admin::PermissionsController < Admin::ApplicationController
     redirect_back_or_default [:admin, @object, :permissions]
   end
   private
-
+  
+  def find_object
+    if params[:group_id]
+      find_group
+    elsif params[:forum_id]
+      find_forum
+    elsif params[:category_id]
+      find_category
+    else
+      not_found("group, category or forum")
+    end
+  end
+  
   def find_group
-    @object = Group.find(params[:group_id], :include => :permissions)
+    @object = Group.find(params[:group_id], :include => :permissions) if params[:group_id] 
   rescue ActiveRecord::RecordNotFound
     not_found("group")
   end
 
   def find_forum
-    @object = Forum.find(params[:forum_id], :include => :permissions)
+    @object = Forum.find(params[:forum_id], :include => :permissions) if params[:forum_id] 
   rescue ActiveRecord::RecordNotFound
     not_found("forum")
   end
 
   def find_category
-    @object = Category.find(params[:category_id], :include => :permissions)
+    @object = Category.find(params[:category_id], :include => :permissions) if params[:category_id] 
   rescue ActiveRecord::RecordNotFound
     not_found("category")
   end
