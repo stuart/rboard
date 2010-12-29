@@ -42,14 +42,15 @@
           %td= t(:can_start_new_topics?)
       %tbody
         - for permission in @object.permissions.forums
-          %td
-            = link_to theme_image_tag("edit.png"), [:edit, :admin, @object, permission]
-            = link_to theme_image_tag("delete.png"), [:admin, @object, permission], :method => "delete", :confirm => t(:confirm_deletion, :thing => "permission")
-          %td= permission.forum
-          %td= theme_image_tag(permission.can_see_forum?.to_s + ".jpg")
-          %td= theme_image_tag(permission.can_see_category?.to_s + ".jpg")
-          %td= theme_image_tag(permission.can_reply_to_topics?.to_s + ".jpg")
-          %td= theme_image_tag(permission.can_start_new_topics?.to_s + ".jpg")
+          %tr
+            %td
+              = link_to theme_image_tag("edit.png"), [:edit, :admin, @object, permission]
+              = link_to theme_image_tag("delete.png"), [:admin, @object, permission], :method => "delete", :confirm => t(:confirm_deletion, :thing => "permission")
+            %td= permission.forum
+            %td= theme_image_tag(permission.can_see_forum?.to_s + ".jpg")
+            %td= theme_image_tag(permission.can_see_category?.to_s + ".jpg")
+            %td= theme_image_tag(permission.can_reply_to_topics?.to_s + ".jpg")
+            %td= theme_image_tag(permission.can_start_new_topics?.to_s + ".jpg")      
   %br
   - if @category_count.zero?
     %h3= t(:No_categories_to_assign_specific_permissions_to)
@@ -71,9 +72,10 @@
             %td= t(:can_reply_to_topics?)
             %td= t(:can_start_new_topics?)
         %tbody
-          - for permission in @object.permissions.forums
-            %td= permission.forum
-            %td= theme_image_tag(permission.can_see_forum?.to_s + ".jpg")
-            %td= theme_image_tag(permission.can_see_category?.to_s + ".jpg")
-            %td= theme_image_tag(permission.can_reply_to_topics?.to_s + ".jpg")
-            %td= theme_image_tag(permission.can_start_new_topics?.to_s + ".jpg")
+          - for permission in @object.permissions.categories
+            %tr
+              %td= permission.forum
+              %td= theme_image_tag(permission.can_see_forum?.to_s + ".jpg")
+              %td= theme_image_tag(permission.can_see_category?.to_s + ".jpg")
+              %td= theme_image_tag(permission.can_reply_to_topics?.to_s + ".jpg")
+              %td= theme_image_tag(permission.can_start_new_topics?.to_s + ".jpg")  
