@@ -4,4 +4,6 @@
 = error_messages_for :group
 = form_for [:admin, @group] do |f|
   = render :partial => "form", :locals => { :f => f }
+  = link_to t(:Edit_specific_permissions), admin_group_permissions_path(@group)
+  %br
   = submit_tag t(:Update)
